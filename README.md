@@ -12,5 +12,5 @@ The report is available in the file `[fontpath]-TABLES.yaml` after you execute t
 
 The success of table reporting is indicated in the standard output stream.  Indicators include:
 
-`[✓]` = successful write of the table contents to the report file
-`[E]` = empty table, this is indicated in the report file under the table name header
+- `[✓]` = successful write of the table contents to the report file
+- `[E]` = empty table, this is indicated in the report file under the table name header
