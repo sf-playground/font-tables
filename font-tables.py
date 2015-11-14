@@ -61,9 +61,11 @@ def main(fontpaths):
 def yaml_formatter(table_name, table_dict):
     """Creates a YAML formatted string for OpenType table font reports"""
     # define the list of tables that require table-specific processing
-    special_table_list = ['OS/2']
+    special_table_list = ['name', 'OS/2']
     if table_name in special_table_list:
-        if table_name == "OS/2":
+        if table_name == "name":
+            return name_yaml_formatter(table_dict)
+        elif table_name == "OS/2":
             return os2_yaml_formatter(table_dict)
     else:
         table_string = table_name.strip() + ": {\n"
@@ -72,10 +74,23 @@ def yaml_formatter(table_name, table_dict):
         table_string += "}\n\n"
         return table_string
 
+def name_yaml_formatter(table_dict):
+    """Formats the YAML table string for OpenType name tables"""
+    table_string = "name: {\n"
+    namerecord_list = table_dict['names']
+    for record in namerecord_list:
+        if record.__dict__['langID'] == 0:
+            record_name = str(record.__dict__['nameID'])
+        else:
+            record_name = str(record.__dict__['nameID']) + "u"
+        record_field = (" "*4) + "nameID" + record_name
+        table_string = table_string + record_field + ": " + str(record.__dict__) + ",\n"
+    table_string = table_string + "}\n\n"
+    return table_string
 
 def os2_yaml_formatter(table_dict):
-    """Formats the YAML table string for OS/2 font tables"""
-    table_string = "OS/2" + ": {\n"
+    """Formats the YAML table string for OpenType OS/2 tables"""
+    table_string = "OS/2: {\n"
     for field in table_dict.keys():
         if field == "panose":
             table_string = table_string + (" "*4) + field + ": {\n"
