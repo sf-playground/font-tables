@@ -13,23 +13,31 @@ from fontTools import ttLib
 
 
 def main(fontpaths):
+    """The main function creates a YAML formatted report on the OpenType tables in one
+    or more fonts included in the fontpaths function parameter."""
 
     for fontpath in fontpaths:
+        # create a fonttools TTFont object using the fontpath
         tt = ttLib.TTFont(fontpath)
         print("Processing " + fontpath + "...")
 
+        # define the outfile path
         basename = os.path.basename(fontpath)
         outfilepath = basename + "-TABLES.yaml"
 
+        # read the font data and create a SHA1 hash digest for the report
         fontdata = read_bin(fontpath)
         hash_digest = hashlib.sha1(fontdata).hexdigest()
 
+        # report strings for file name and SHA1 digest
         report_header_string = "FILE: " + fontpath + "\n"
         report_header_string += "SHA1: " + hash_digest + "\n---\n\n"
 
+        # open outfile write stream, create file, write name + SHA1 header
         with open(outfilepath, "w") as writer:
             writer.write(report_header_string)
 
+        # iterate through the OpenType tables, write table fields in a newline delimited format with YAML syntax
         for table in tt.keys():
             if len(tt[table].__dict__) > 0:
                 table_string = "# " + table + "\n"
@@ -50,6 +58,7 @@ def main(fontpaths):
 
 
 def read_bin(filepath):
+    """read_bin function reads filepath parameter as binary data and returns raw binary to calling code"""
     try:
         with open(filepath, 'rb') as bin_reader:
             data = bin_reader.read()
