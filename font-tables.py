@@ -43,11 +43,6 @@ def main(fontpaths):
             for table in tt.keys():
                 table_dict = tt[table].__dict__
                 if len(table_dict) > 0:
-                    # table_string = table.strip() + ": {\n"
-                    # for field in tt[table].__dict__.keys():
-                    #     table_string = table_string + (" "*4) + field + ": " + str(tt[table].__dict__[field]) + ',\n'
-                    # table_string += "}\n\n"
-
                     table_string = yaml_formatter(table, table_dict)
                     with open(outfilepath, 'a') as appender:
                                 appender.write(table_string)
@@ -55,12 +50,12 @@ def main(fontpaths):
                 else:
                     print("[E] " + table)  # indicate missing table data in standard output, do not write to YAML file
             print(fontpath + " table report is available in " + outfilepath + "\n")
-        else:  # not a filepath
+        else:  # not a valid filepath
             sys.stderr.write("Error: '" + fontpath + "' was not found. Please check the filepath.\n\n")
 
 
 def yaml_formatter(table_name, table_dict):
-    """Formats YAML string for OpenType tables in a font"""
+    """Creates a YAML formatted string for OpenType table font reports"""
     # define the list of tables that require table-specific processing
     special_table_list = ['OS/2']
     if table_name in special_table_list:
