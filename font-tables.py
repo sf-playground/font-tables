@@ -4,6 +4,7 @@
 
 
 import sys
+import os
 import os.path
 import hashlib
 from fontTools import ttLib
@@ -16,6 +17,10 @@ def main(fontpaths):
     """The main function creates a YAML formatted report on the OpenType tables in one
     or more fonts included in the fontpaths function parameter."""
 
+    # create a report directory, gracefully fail if it already exists
+    if not os.path.isdir("otreports"):
+        os.mkdir("otreports")
+
     for fontpath in fontpaths:
 
         if os.path.isfile(fontpath):
@@ -25,7 +30,8 @@ def main(fontpaths):
 
             # define the outfile path
             basename = os.path.basename(fontpath)
-            outfilepath = basename + "-TABLES.yaml"
+            basefilename = basename + "-TABLES.yaml"
+            outfilepath = os.path.join("otreports", basefilename)
 
             # read the font data and create a SHA1 hash digest for the report
             fontdata = read_bin(fontpath)
