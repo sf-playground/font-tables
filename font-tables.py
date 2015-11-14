@@ -41,11 +41,14 @@ def main(fontpaths):
 
             # iterate through the OpenType tables, write table fields in a newline delimited format with YAML syntax
             for table in tt.keys():
-                if len(tt[table].__dict__) > 0:
-                    table_string = table.strip() + ": {\n"
-                    for field in tt[table].__dict__.keys():
-                        table_string = table_string + (" "*4) + field + ": " + str(tt[table].__dict__[field]) + ',\n'
-                    table_string += "}\n\n"
+                table_dict = tt[table].__dict__
+                if len(table_dict) > 0:
+                    # table_string = table.strip() + ": {\n"
+                    # for field in tt[table].__dict__.keys():
+                    #     table_string = table_string + (" "*4) + field + ": " + str(tt[table].__dict__[field]) + ',\n'
+                    # table_string += "}\n\n"
+
+                    table_string = yaml_formatter(table, table_dict)
                     with open(outfilepath, 'a') as appender:
                                 appender.write(table_string)
                     print("[✓] " + table)
@@ -55,6 +58,37 @@ def main(fontpaths):
         else:  # not a filepath
             sys.stderr.write("Error: '" + fontpath + "' was not found. Please check the filepath.\n\n")
 
+
+def yaml_formatter(table_name, table_dict):
+    """Formats YAML string for OpenType tables in a font"""
+    # define the list of tables that require table-specific processing
+    special_table_list = ['OS/2']
+    if table_name in special_table_list:
+        if table_name == "OS/2":
+            return os2_yaml_formatter(table_dict)
+    else:
+        table_string = table_name.strip() + ": {\n"
+        for field in table_dict.keys():
+            table_string = table_string + (" "*4) + field + ": " + str(table_dict[field]) + ',\n'
+        table_string += "}\n\n"
+        return table_string
+
+
+def os2_yaml_formatter(table_dict):
+    """Formats the YAML table string for OS/2 font tables"""
+    table_string = "OS/2" + ": {\n"
+    for field in table_dict.keys():
+        if field == "panose":
+            table_string = table_string + (" "*4) + field + ": {\n"
+            panose_string = ""
+            panose_dict = table_dict['panose'].__dict__
+            for panose_field in panose_dict.keys():
+                panose_string = panose_string + (" "*8) + panose_field[1:] + ": " + str(panose_dict[panose_field]) + ",\n"
+            table_string = table_string + panose_string + (" "*4) + "}\n"
+        else:
+            table_string = table_string + (" "*4) + field + ": " + str(table_dict[field]) + ',\n'
+    table_string = table_string + "}\n\n"
+    return table_string
 
 
 def read_bin(filepath):
