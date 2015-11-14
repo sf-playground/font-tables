@@ -17,6 +17,7 @@ def main(fontpaths):
     or more fonts included in the fontpaths function parameter."""
 
     for fontpath in fontpaths:
+
         # create a fonttools TTFont object using the fontpath
         tt = ttLib.TTFont(fontpath)
         print("Processing " + fontpath + "...")
@@ -31,7 +32,7 @@ def main(fontpaths):
 
         # report strings for file name and SHA1 digest
         report_header_string = "FILE: " + fontpath + "\n"
-        report_header_string += "SHA1: " + hash_digest + "\n---\n\n"
+        report_header_string += "SHA1: " + hash_digest + "\n\n"
 
         # open outfile write stream, create file, write name + SHA1 header
         with open(outfilepath, "w") as writer:
@@ -40,19 +41,15 @@ def main(fontpaths):
         # iterate through the OpenType tables, write table fields in a newline delimited format with YAML syntax
         for table in tt.keys():
             if len(tt[table].__dict__) > 0:
-                table_string = "# " + table + "\n"
+                table_string = table + ": {\n"
                 for field in tt[table].__dict__.keys():
-                    table_string = table_string + field + ": " + str(tt[table].__dict__[field]) + '\n'
-                table_string += "\n\n"
+                    table_string = table_string + (" "*4) + field + ": " + str(tt[table].__dict__[field]) + ',\n'
+                table_string += "}\n\n"
                 with open(outfilepath, 'a') as appender:
                             appender.write(table_string)
                 print("[✓] " + table)
             else:
-                print("[E] " + table)
-                table_string = "# " + table + "\n"
-                table_string += "--EMPTY--\n\n"
-                with open(outfilepath, 'a') as appender:
-                            appender.write(table_string)
+                print("[E] " + table)  # indicate missing table data in standard output, do not write to YAML file
         print(fontpath + " table report is available in " + outfilepath + "\n")
 
 
