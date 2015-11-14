@@ -8,8 +8,8 @@ import os.path
 import hashlib
 from fontTools import ttLib
 
-# TODO: check that requested file paths exist
 # TODO: expand Python objects within the table values
+# TODO: modify TTFA table read to create YAML format from the strings
 
 
 def main(fontpaths):
@@ -18,39 +18,42 @@ def main(fontpaths):
 
     for fontpath in fontpaths:
 
-        # create a fonttools TTFont object using the fontpath
-        tt = ttLib.TTFont(fontpath)
-        print("Processing " + fontpath + "...")
+        if os.path.isfile(fontpath):
+            # create a fonttools TTFont object using the fontpath
+            tt = ttLib.TTFont(fontpath)
+            print("Processing " + fontpath + "...")
 
-        # define the outfile path
-        basename = os.path.basename(fontpath)
-        outfilepath = basename + "-TABLES.yaml"
+            # define the outfile path
+            basename = os.path.basename(fontpath)
+            outfilepath = basename + "-TABLES.yaml"
 
-        # read the font data and create a SHA1 hash digest for the report
-        fontdata = read_bin(fontpath)
-        hash_digest = hashlib.sha1(fontdata).hexdigest()
+            # read the font data and create a SHA1 hash digest for the report
+            fontdata = read_bin(fontpath)
+            hash_digest = hashlib.sha1(fontdata).hexdigest()
 
-        # report strings for file name and SHA1 digest
-        report_header_string = "FILE: " + fontpath + "\n"
-        report_header_string += "SHA1: " + hash_digest + "\n\n"
+            # report strings for file name and SHA1 digest
+            report_header_string = "FILE: " + fontpath + "\n"
+            report_header_string += "SHA1: " + hash_digest + "\n\n"
 
-        # open outfile write stream, create file, write name + SHA1 header
-        with open(outfilepath, "w") as writer:
-            writer.write(report_header_string)
+            # open outfile write stream, create file, write name + SHA1 header
+            with open(outfilepath, "w") as writer:
+                writer.write(report_header_string)
 
-        # iterate through the OpenType tables, write table fields in a newline delimited format with YAML syntax
-        for table in tt.keys():
-            if len(tt[table].__dict__) > 0:
-                table_string = table + ": {\n"
-                for field in tt[table].__dict__.keys():
-                    table_string = table_string + (" "*4) + field + ": " + str(tt[table].__dict__[field]) + ',\n'
-                table_string += "}\n\n"
-                with open(outfilepath, 'a') as appender:
-                            appender.write(table_string)
-                print("[✓] " + table)
-            else:
-                print("[E] " + table)  # indicate missing table data in standard output, do not write to YAML file
-        print(fontpath + " table report is available in " + outfilepath + "\n")
+            # iterate through the OpenType tables, write table fields in a newline delimited format with YAML syntax
+            for table in tt.keys():
+                if len(tt[table].__dict__) > 0:
+                    table_string = table.strip() + ": {\n"
+                    for field in tt[table].__dict__.keys():
+                        table_string = table_string + (" "*4) + field + ": " + str(tt[table].__dict__[field]) + ',\n'
+                    table_string += "}\n\n"
+                    with open(outfilepath, 'a') as appender:
+                                appender.write(table_string)
+                    print("[✓] " + table)
+                else:
+                    print("[E] " + table)  # indicate missing table data in standard output, do not write to YAML file
+            print(fontpath + " table report is available in " + outfilepath + "\n")
+        else:  # not a filepath
+            sys.stderr.write("Error: '" + fontpath + "' was not found. Please check the filepath.\n\n")
 
 
 
