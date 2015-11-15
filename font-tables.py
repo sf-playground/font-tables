@@ -19,6 +19,7 @@ def main(fontpaths):
     if not os.path.isdir("otreports"):
         os.mkdir("otreports")
 
+    # iterate through fonts requested in the command
     for fontpath in fontpaths:
 
         if os.path.isfile(fontpath):
@@ -61,12 +62,14 @@ def main(fontpaths):
 def yaml_formatter(table_name, table_dict):
     """Creates a YAML formatted string for OpenType table font reports"""
     # define the list of tables that require table-specific processing
-    special_table_list = ['name', 'OS/2']
+    special_table_list = ['name', 'OS/2', 'TTFA']
     if table_name in special_table_list:
         if table_name == "name":
             return name_yaml_formatter(table_dict)
         elif table_name == "OS/2":
             return os2_yaml_formatter(table_dict)
+        elif table_name == "TTFA":
+            return ttfa_yaml_formatter(table_dict)
     else:
         table_string = table_name.strip() + ": {\n"
         for field in table_dict.keys():
@@ -101,6 +104,22 @@ def os2_yaml_formatter(table_dict):
             table_string = table_string + panose_string + (" "*4) + "}\n"
         else:
             table_string = table_string + (" "*4) + field + ": " + str(table_dict[field]) + ',\n'
+    table_string = table_string + "}\n\n"
+    return table_string
+
+def ttfa_yaml_formatter(table_dict):
+    """Formats the YAML table string for the ttfautohint TTFA table"""
+    data_string = table_dict['data'].strip()
+    data_list = data_string.split('\n')  # split on newlines in the string
+    table_string = "TTFA: {\n"
+    for definition_string in data_list:
+        definition_list = definition_string.split("=")
+        field = definition_list[0].strip()
+        if len(definition_list) > 1:
+            value = definition_list[1].strip()
+        else:
+            value = "''"
+        table_string = table_string + (" "*4) + field + ": " + value + ",\n"
     table_string = table_string + "}\n\n"
     return table_string
 
